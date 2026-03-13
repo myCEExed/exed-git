@@ -215,30 +215,36 @@ const Auth = () => {
     setLoading(true);
     setSignUpError(null);
     
-    const { error } = await supabase.auth.signUp({
-      email: values.email,
-      password: values.password,
-      options: {
-        data: {
-          first_name: values.firstName,
-          last_name: values.lastName,
+    try {
+      const { error } = await supabase.auth.signUp({
+        email: values.email,
+        password: values.password,
+        options: {
+          data: {
+            first_name: values.firstName,
+            last_name: values.lastName,
+          },
+          emailRedirectTo: `${window.location.origin}/`,
         },
-        emailRedirectTo: `${window.location.origin}/`,
-      },
-    });
+      });
 
-    if (error) {
-      const translatedMessage = translateAuthError(error.message);
-      const isExisting = isUserAlreadyExistsError(error.message);
-      
-      if (isExisting) {
-        setSignUpError({ message: translatedMessage, isExistingUser: true });
+      if (error) {
+        const translatedMessage = translateAuthError(error.message);
+        const isExisting = isUserAlreadyExistsError(error.message);
+        
+        if (isExisting) {
+          setSignUpError({ message: translatedMessage, isExistingUser: true });
+        } else {
+          toast.error(translatedMessage);
+        }
       } else {
-        toast.error(translatedMessage);
+        toast.success("Compte créé avec succès ! Vérifiez votre email pour confirmer votre inscription.");
       }
-    } else {
-      toast.success("Compte créé avec succès !");
-      navigate("/");
+    } catch (err: any) {
+      console.error("Signup network error:", err);
+      toast.error(
+        "Impossible de contacter le serveur d'authentification. Vérifiez votre connexion réseau et la configuration du serveur (CORS, HTTPS)."
+      );
     }
     setLoading(false);
   };
